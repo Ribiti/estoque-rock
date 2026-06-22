@@ -46,7 +46,7 @@ const materialSchema = z.object({
 });
 type MaterialForm = z.infer<typeof materialSchema>;
 
-export const Route = createFileRoute("/estoque")({
+export const Route = createFileRoute("/_authenticated/estoque")({
   head: () => ({ meta: [{ title: "Estoque Central — ObraStock" }] }),
   component: EstoquePage,
 });
