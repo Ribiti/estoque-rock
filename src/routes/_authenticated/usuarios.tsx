@@ -57,7 +57,7 @@ const schema = z.object({
   username: z.string().min(3).max(32).regex(/^[a-zA-Z0-9_.-]+$/, "Use letras, números, ., _ ou -"),
   full_name: z.string().trim().min(1, "Nome obrigatório").max(120),
   password: z.string().min(6, "Mínimo 6 caracteres"),
-  is_admin: z.boolean().default(false),
+  is_admin: z.boolean(),
 });
 type FormValues = z.infer<typeof schema>;
 
