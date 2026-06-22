@@ -29,7 +29,7 @@ import {
 } from "@/lib/api";
 import { supabase } from "@/integrations/supabase/client";
 
-export const Route = createFileRoute("/obras")({
+export const Route = createFileRoute("/_authenticated/obras")({
   head: () => ({ meta: [{ title: "Obras — ObraStock" }] }),
   component: ObrasPage,
 });

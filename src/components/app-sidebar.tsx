@@ -1,8 +1,10 @@
-import { Link, useRouterState } from "@tanstack/react-router";
-import { LayoutDashboard, Boxes, HardHat, Hammer } from "lucide-react";
+import { Link, useRouter, useRouterState } from "@tanstack/react-router";
+import { useQueryClient } from "@tanstack/react-query";
+import { LayoutDashboard, Boxes, HardHat, Hammer, Users, LogOut } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
+  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
@@ -11,8 +13,10 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
+import { supabase } from "@/integrations/supabase/client";
+import { useCurrentUser, useIsAdmin, emailToUsername } from "@/lib/auth";
 
-const items = [
+const baseItems = [
   { title: "Dashboard", url: "/", icon: LayoutDashboard },
   { title: "Estoque Central", url: "/estoque", icon: Boxes },
   { title: "Obras", url: "/obras", icon: HardHat },
@@ -20,8 +24,24 @@ const items = [
 
 export function AppSidebar() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const router = useRouter();
+  const qc = useQueryClient();
+  const { user } = useCurrentUser();
+  const { data: isAdmin } = useIsAdmin(user?.id);
+
+  const items = isAdmin
+    ? [...baseItems, { title: "Usuários", url: "/usuarios", icon: Users }]
+    : baseItems;
+
   const isActive = (path: string) =>
     path === "/" ? pathname === "/" : pathname.startsWith(path);
+
+  async function handleLogout() {
+    await qc.cancelQueries();
+    qc.clear();
+    await supabase.auth.signOut();
+    router.navigate({ to: "/auth", replace: true });
+  }
 
   return (
     <Sidebar collapsible="icon">
@@ -59,6 +79,22 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+      <SidebarFooter className="border-t border-sidebar-border">
+        <div className="px-2 py-2 group-data-[collapsible=icon]:hidden">
+          <p className="text-xs text-sidebar-foreground/60">Conectado como</p>
+          <p className="text-sm font-medium text-sidebar-foreground truncate">
+            {emailToUsername(user?.email) || "—"}
+          </p>
+        </div>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton onClick={handleLogout} tooltip="Sair">
+              <LogOut className="h-4 w-4" />
+              <span>Sair</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarFooter>
     </Sidebar>
   );
 }

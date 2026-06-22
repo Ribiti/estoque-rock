@@ -9,86 +9,153 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as ObrasRouteImport } from './routes/obras'
-import { Route as EstoqueRouteImport } from './routes/estoque'
-import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
+import { Route as AuthenticatedUsuariosRouteImport } from './routes/_authenticated/usuarios'
+import { Route as AuthenticatedObrasRouteImport } from './routes/_authenticated/obras'
+import { Route as AuthenticatedEstoqueRouteImport } from './routes/_authenticated/estoque'
 
-const ObrasRoute = ObrasRouteImport.update({
-  id: '/obras',
-  path: '/obras',
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
-const EstoqueRoute = EstoqueRouteImport.update({
-  id: '/estoque',
-  path: '/estoque',
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
+const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedUsuariosRoute = AuthenticatedUsuariosRouteImport.update({
+  id: '/usuarios',
+  path: '/usuarios',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedObrasRoute = AuthenticatedObrasRouteImport.update({
+  id: '/obras',
+  path: '/obras',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedEstoqueRoute = AuthenticatedEstoqueRouteImport.update({
+  id: '/estoque',
+  path: '/estoque',
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
-  '/estoque': typeof EstoqueRoute
-  '/obras': typeof ObrasRoute
+  '/': typeof AuthenticatedIndexRoute
+  '/auth': typeof AuthRoute
+  '/estoque': typeof AuthenticatedEstoqueRoute
+  '/obras': typeof AuthenticatedObrasRoute
+  '/usuarios': typeof AuthenticatedUsuariosRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
-  '/estoque': typeof EstoqueRoute
-  '/obras': typeof ObrasRoute
+  '/auth': typeof AuthRoute
+  '/estoque': typeof AuthenticatedEstoqueRoute
+  '/obras': typeof AuthenticatedObrasRoute
+  '/usuarios': typeof AuthenticatedUsuariosRoute
+  '/': typeof AuthenticatedIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
-  '/estoque': typeof EstoqueRoute
-  '/obras': typeof ObrasRoute
+  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/auth': typeof AuthRoute
+  '/_authenticated/estoque': typeof AuthenticatedEstoqueRoute
+  '/_authenticated/obras': typeof AuthenticatedObrasRoute
+  '/_authenticated/usuarios': typeof AuthenticatedUsuariosRoute
+  '/_authenticated/': typeof AuthenticatedIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/estoque' | '/obras'
+  fullPaths: '/' | '/auth' | '/estoque' | '/obras' | '/usuarios'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/estoque' | '/obras'
-  id: '__root__' | '/' | '/estoque' | '/obras'
+  to: '/auth' | '/estoque' | '/obras' | '/usuarios' | '/'
+  id:
+    | '__root__'
+    | '/_authenticated'
+    | '/auth'
+    | '/_authenticated/estoque'
+    | '/_authenticated/obras'
+    | '/_authenticated/usuarios'
+    | '/_authenticated/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
-  EstoqueRoute: typeof EstoqueRoute
-  ObrasRoute: typeof ObrasRoute
+  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  AuthRoute: typeof AuthRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/obras': {
-      id: '/obras'
-      path: '/obras'
-      fullPath: '/obras'
-      preLoaderRoute: typeof ObrasRouteImport
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/estoque': {
-      id: '/estoque'
-      path: '/estoque'
-      fullPath: '/estoque'
-      preLoaderRoute: typeof EstoqueRouteImport
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
+    '/_authenticated/': {
+      id: '/_authenticated/'
       path: '/'
       fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AuthenticatedIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/usuarios': {
+      id: '/_authenticated/usuarios'
+      path: '/usuarios'
+      fullPath: '/usuarios'
+      preLoaderRoute: typeof AuthenticatedUsuariosRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/obras': {
+      id: '/_authenticated/obras'
+      path: '/obras'
+      fullPath: '/obras'
+      preLoaderRoute: typeof AuthenticatedObrasRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/estoque': {
+      id: '/_authenticated/estoque'
+      path: '/estoque'
+      fullPath: '/estoque'
+      preLoaderRoute: typeof AuthenticatedEstoqueRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
   }
 }
 
+interface AuthenticatedRouteRouteChildren {
+  AuthenticatedEstoqueRoute: typeof AuthenticatedEstoqueRoute
+  AuthenticatedObrasRoute: typeof AuthenticatedObrasRoute
+  AuthenticatedUsuariosRoute: typeof AuthenticatedUsuariosRoute
+  AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
+}
+
+const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedEstoqueRoute: AuthenticatedEstoqueRoute,
+  AuthenticatedObrasRoute: AuthenticatedObrasRoute,
+  AuthenticatedUsuariosRoute: AuthenticatedUsuariosRoute,
+  AuthenticatedIndexRoute: AuthenticatedIndexRoute,
+}
+
+const AuthenticatedRouteRouteWithChildren =
+  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
-  EstoqueRoute: EstoqueRoute,
-  ObrasRoute: ObrasRoute,
+  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  AuthRoute: AuthRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
