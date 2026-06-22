@@ -14,13 +14,108 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      alocacoes: {
+        Row: {
+          data_alocacao: string
+          id: string
+          material_id: string
+          obra_id: string
+          quantidade: number
+        }
+        Insert: {
+          data_alocacao?: string
+          id?: string
+          material_id: string
+          obra_id: string
+          quantidade: number
+        }
+        Update: {
+          data_alocacao?: string
+          id?: string
+          material_id?: string
+          obra_id?: string
+          quantidade?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "alocacoes_material_id_fkey"
+            columns: ["material_id"]
+            isOneToOne: false
+            referencedRelation: "materiais"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "alocacoes_obra_id_fkey"
+            columns: ["obra_id"]
+            isOneToOne: false
+            referencedRelation: "obras"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      materiais: {
+        Row: {
+          categoria: string
+          created_at: string
+          estoque_minimo: number
+          id: string
+          nome: string
+          quantidade_disponivel: number
+          unidade: string
+          updated_at: string
+        }
+        Insert: {
+          categoria: string
+          created_at?: string
+          estoque_minimo?: number
+          id?: string
+          nome: string
+          quantidade_disponivel?: number
+          unidade: string
+          updated_at?: string
+        }
+        Update: {
+          categoria?: string
+          created_at?: string
+          estoque_minimo?: number
+          id?: string
+          nome?: string
+          quantidade_disponivel?: number
+          unidade?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      obras: {
+        Row: {
+          created_at: string
+          id: string
+          nome: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          nome: string
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          nome?: string
+          status?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      alocar_material: {
+        Args: { p_material_id: string; p_obra_id: string; p_quantidade: number }
+        Returns: string
+      }
     }
     Enums: {
       [_ in never]: never
