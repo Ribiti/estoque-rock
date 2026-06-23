@@ -307,6 +307,7 @@ function AlocarMaterialDialog({
       toast.success("Material enviado para a obra");
       qc.invalidateQueries({ queryKey: ["alocacoes", obra.id] });
       qc.invalidateQueries({ queryKey: ["materiais"] });
+      qc.invalidateQueries({ queryKey: ["movimentacoes"] });
       onOpenChange(false);
     },
     onError: (e: Error) => toast.error(e.message),
