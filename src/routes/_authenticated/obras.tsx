@@ -301,11 +301,11 @@ function AlocarMaterialDialog({
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit((v) => mut.mutate(v))} className="space-y-4">
-            <div>
-              <FormLabel>Buscar material</FormLabel>
+            <div className="space-y-2">
+              <label className="text-sm font-medium leading-none">Buscar material</label>
               <Input
                 placeholder="Digite para filtrar..." value={search}
-                onChange={(e) => setSearch(e.target.value)} className="mt-2"
+                onChange={(e) => setSearch(e.target.value)}
               />
             </div>
 
