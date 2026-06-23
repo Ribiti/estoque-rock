@@ -110,24 +110,8 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <SidebarProvider>
-        <div className="min-h-screen flex w-full bg-background">
-          <AppSidebar />
-          <div className="flex-1 flex flex-col min-w-0">
-            <header className="h-14 flex items-center gap-3 border-b bg-card px-4 sticky top-0 z-30">
-              <SidebarTrigger />
-              <div className="h-6 w-px bg-border" />
-              <h2 className="text-sm font-medium text-muted-foreground">
-                Painel de gestão
-              </h2>
-            </header>
-            <main className="flex-1 overflow-auto">
-              <Outlet />
-            </main>
-          </div>
-        </div>
-        <Toaster richColors position="top-right" />
-      </SidebarProvider>
+      <Outlet />
+      <Toaster richColors position="top-right" />
     </QueryClientProvider>
   );
 }
