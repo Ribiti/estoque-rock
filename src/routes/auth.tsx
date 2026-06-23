@@ -60,8 +60,8 @@ function AuthPage() {
     <div className="min-h-screen flex items-center justify-center bg-background px-4">
       <Card className="w-full max-w-md p-8">
         <div className="flex flex-col items-center gap-3 mb-6">
-          <div className="flex h-12 w-12 items-center justify-center rounded-md bg-accent text-accent-foreground">
-            <Hammer className="h-6 w-6" />
+          <div className="h-20 w-20 rounded-xl overflow-hidden bg-primary shadow-lg">
+            <img src={rockLogo.url} alt="ROCK Incorporadora" className="h-full w-full object-cover" />
           </div>
           <div className="text-center">
             <h1 className="text-2xl font-bold">ROCK Incorporadora</h1>
