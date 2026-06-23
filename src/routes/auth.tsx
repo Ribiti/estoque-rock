@@ -16,8 +16,8 @@ export const Route = createFileRoute("/auth")({
   ssr: false,
   head: () => ({
     meta: [
-      { title: "Entrar — ObraStock" },
-      { name: "description", content: "Acesse sua conta no ObraStock." },
+      { title: "Entrar — ROCK Incorporadora" },
+      { name: "description", content: "Acesse sua conta no ROCK Incorporadora." },
     ],
   }),
   component: AuthPage,
@@ -63,7 +63,7 @@ function AuthPage() {
             <Hammer className="h-6 w-6" />
           </div>
           <div className="text-center">
-            <h1 className="text-2xl font-bold">ObraStock</h1>
+            <h1 className="text-2xl font-bold">ROCK Incorporadora</h1>
             <p className="text-sm text-muted-foreground">
               Controle de estoque para construtoras
             </p>

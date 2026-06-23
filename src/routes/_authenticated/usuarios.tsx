@@ -42,7 +42,7 @@ export const Route = createFileRoute("/_authenticated/usuarios")({
       .maybeSingle();
     if (!data) throw redirect({ to: "/" });
   },
-  head: () => ({ meta: [{ title: "Usuários — ObraStock" }] }),
+  head: () => ({ meta: [{ title: "Usuários — ROCK Incorporadora" }] }),
   component: UsuariosPage,
 });
 

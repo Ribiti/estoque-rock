@@ -52,7 +52,7 @@ export function AppSidebar() {
           </div>
           <div className="flex flex-col group-data-[collapsible=icon]:hidden">
             <span className="text-sm font-bold text-sidebar-foreground leading-tight">
-              ObraStock
+              ROCK Incorporadora
             </span>
             <span className="text-xs text-sidebar-foreground/60 leading-tight">
               Controle de estoque

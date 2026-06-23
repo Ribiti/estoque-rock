@@ -30,7 +30,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/_authenticated/obras")({
-  head: () => ({ meta: [{ title: "Obras — ObraStock" }] }),
+  head: () => ({ meta: [{ title: "Obras — ROCK Incorporadora" }] }),
   component: ObrasPage,
 });
 
