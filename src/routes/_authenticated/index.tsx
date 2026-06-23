@@ -9,7 +9,7 @@ import { fetchMateriais, fetchObras } from "@/lib/api";
 export const Route = createFileRoute("/_authenticated/")({
   head: () => ({
     meta: [
-      { title: "Dashboard — ObraStock" },
+      { title: "Dashboard — ROCK Incorporadora" },
       { name: "description", content: "Visão geral do estoque e obras ativas." },
     ],
   }),

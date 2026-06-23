@@ -11,8 +11,6 @@ import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { AppSidebar } from "@/components/app-sidebar";
 import { Toaster } from "@/components/ui/sonner";
 
 function NotFoundComponent() {
@@ -72,10 +70,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "ObraStock — Controle de Estoque" },
+      { title: "ROCK Incorporadora — Controle de Estoque" },
       { name: "description", content: "Sistema de controle de estoque e alocação de materiais para construtoras." },
-      { property: "og:title", content: "ObraStock — Controle de Estoque" },
-      { name: "twitter:title", content: "ObraStock — Controle de Estoque" },
+      { property: "og:title", content: "ROCK Incorporadora — Controle de Estoque" },
+      { name: "twitter:title", content: "ROCK Incorporadora — Controle de Estoque" },
       { property: "og:description", content: "Sistema de controle de estoque e alocação de materiais para construtoras." },
       { name: "twitter:description", content: "Sistema de controle de estoque e alocação de materiais para construtoras." },
       { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/ab77de0f-9ed7-49ee-bbf9-059510588e9f/id-preview-f987a08d--435d0dec-0510-48dd-b132-6280cca885c8.lovable.app-1782148738918.png" },
@@ -110,24 +108,8 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <SidebarProvider>
-        <div className="min-h-screen flex w-full bg-background">
-          <AppSidebar />
-          <div className="flex-1 flex flex-col min-w-0">
-            <header className="h-14 flex items-center gap-3 border-b bg-card px-4 sticky top-0 z-30">
-              <SidebarTrigger />
-              <div className="h-6 w-px bg-border" />
-              <h2 className="text-sm font-medium text-muted-foreground">
-                Painel de gestão
-              </h2>
-            </header>
-            <main className="flex-1 overflow-auto">
-              <Outlet />
-            </main>
-          </div>
-        </div>
-        <Toaster richColors position="top-right" />
-      </SidebarProvider>
+      <Outlet />
+      <Toaster richColors position="top-right" />
     </QueryClientProvider>
   );
 }
