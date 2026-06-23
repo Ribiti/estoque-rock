@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { Hammer, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
+import rockLogo from "@/assets/rock-logo.jpg.asset.json";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
