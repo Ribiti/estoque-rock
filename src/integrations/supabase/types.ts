@@ -86,6 +86,54 @@ export type Database = {
         }
         Relationships: []
       }
+      movimentacoes: {
+        Row: {
+          created_at: string
+          id: string
+          material_id: string
+          obra_id: string | null
+          observacao: string | null
+          quantidade: number
+          tipo: Database["public"]["Enums"]["movimentacao_tipo"]
+          usuario_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          material_id: string
+          obra_id?: string | null
+          observacao?: string | null
+          quantidade: number
+          tipo: Database["public"]["Enums"]["movimentacao_tipo"]
+          usuario_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          material_id?: string
+          obra_id?: string | null
+          observacao?: string | null
+          quantidade?: number
+          tipo?: Database["public"]["Enums"]["movimentacao_tipo"]
+          usuario_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "movimentacoes_material_id_fkey"
+            columns: ["material_id"]
+            isOneToOne: false
+            referencedRelation: "materiais"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "movimentacoes_obra_id_fkey"
+            columns: ["obra_id"]
+            isOneToOne: false
+            referencedRelation: "obras"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       obras: {
         Row: {
           created_at: string
@@ -171,6 +219,7 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "user"
+      movimentacao_tipo: "entrada" | "saida_obra" | "retorno_obra" | "ajuste"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -299,6 +348,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "user"],
+      movimentacao_tipo: ["entrada", "saida_obra", "retorno_obra", "ajuste"],
     },
   },
 } as const

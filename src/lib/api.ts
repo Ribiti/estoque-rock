@@ -28,6 +28,34 @@ export type Alocacao = {
 
 export type AlocacaoComMaterial = Alocacao & { material: Material | null };
 
+export type MovimentacaoTipo = "entrada" | "saida_obra" | "retorno_obra" | "ajuste";
+
+export type Movimentacao = {
+  id: string;
+  material_id: string;
+  obra_id: string | null;
+  tipo: MovimentacaoTipo;
+  quantidade: number;
+  observacao: string | null;
+  usuario_id: string | null;
+  created_at: string;
+};
+
+export type MovimentacaoComRefs = Movimentacao & {
+  material: Material | null;
+  obra: Obra | null;
+};
+
+export async function fetchMovimentacoes(): Promise<MovimentacaoComRefs[]> {
+  const { data, error } = await supabase
+    .from("movimentacoes")
+    .select("*, material:materiais(*), obra:obras(*)")
+    .order("created_at", { ascending: false })
+    .limit(1000);
+  if (error) throw error;
+  return (data ?? []) as MovimentacaoComRefs[];
+}
+
 export async function fetchMateriais(): Promise<Material[]> {
   const { data, error } = await supabase
     .from("materiais")

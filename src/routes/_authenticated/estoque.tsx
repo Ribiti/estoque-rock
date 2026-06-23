@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Plus, Search, Pencil, Trash2, Package, AlertTriangle } from "lucide-react";
+import { Plus, Search, Pencil, Trash2, Package, AlertTriangle, Download } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
@@ -32,6 +32,7 @@ import {
   PaginationNext, PaginationPrevious,
 } from "@/components/ui/pagination";
 import { fetchMateriais, type Material } from "@/lib/api";
+import { exportEstoqueAtual } from "@/lib/exports";
 import { supabase } from "@/integrations/supabase/client";
 
 const CATEGORIAS = ["Hidráulica", "Elétrica", "Alvenaria", "Acabamento", "Estrutura", "Ferramentas", "Outros"];
@@ -105,9 +106,22 @@ function EstoquePage() {
             {materiais.length} {materiais.length === 1 ? "item cadastrado" : "itens cadastrados"}
           </p>
         </div>
-        <Button size="lg" onClick={() => setCreating(true)} className="shadow-md">
-          <Plus className="h-5 w-5" /> Novo Item
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            size="lg"
+            onClick={() => {
+              if (materiais.length === 0) { toast.error("Nenhum item para exportar"); return; }
+              exportEstoqueAtual(materiais);
+              toast.success("Planilha gerada");
+            }}
+          >
+            <Download className="h-4 w-4" /> Exportar Excel
+          </Button>
+          <Button size="lg" onClick={() => setCreating(true)} className="shadow-md">
+            <Plus className="h-5 w-5" /> Novo Item
+          </Button>
+        </div>
       </div>
 
       <Card className="p-4">

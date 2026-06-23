@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Plus, HardHat, Send, Package, CheckCircle2, Trash2 } from "lucide-react";
+import { Plus, HardHat, Send, Package, CheckCircle2, Trash2, Download } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
@@ -27,6 +27,7 @@ import {
   alocarMaterial, fetchAlocacoesPorObra, fetchMateriais, fetchObras,
   type Obra,
 } from "@/lib/api";
+import { exportObra } from "@/lib/exports";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/_authenticated/obras")({
@@ -155,11 +156,20 @@ function ObraPanel({ obra, onConcluir }: { obra: Obra; onConcluir: () => void })
       if (e2) throw e2;
       const { error: e3 } = await supabase.from("alocacoes").delete().eq("id", alocacao.id);
       if (e3) throw e3;
+      // Registrar movimentação de retorno
+      await supabase.from("movimentacoes").insert({
+        material_id: alocacao.material_id,
+        obra_id: obra.id,
+        tipo: "retorno_obra",
+        quantidade: alocacao.quantidade,
+        observacao: `Retorno da obra ${obra.nome}`,
+      });
     },
     onSuccess: () => {
       toast.success("Alocação revertida ao estoque");
       qc.invalidateQueries({ queryKey: ["alocacoes", obra.id] });
       qc.invalidateQueries({ queryKey: ["materiais"] });
+      qc.invalidateQueries({ queryKey: ["movimentacoes"] });
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -173,7 +183,17 @@ function ObraPanel({ obra, onConcluir }: { obra: Obra; onConcluir: () => void })
             {alocacoes.length} {alocacoes.length === 1 ? "alocação registrada" : "alocações registradas"}
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
+          <Button
+            variant="outline"
+            onClick={() => {
+              if (alocacoes.length === 0) { toast.error("Nenhum envio para exportar"); return; }
+              exportObra(obra, alocacoes);
+              toast.success("Planilha gerada");
+            }}
+          >
+            <Download className="h-4 w-4" /> Exportar Excel
+          </Button>
           <Button variant="outline" onClick={onConcluir}>
             <CheckCircle2 className="h-4 w-4" /> Concluir obra
           </Button>
@@ -287,6 +307,7 @@ function AlocarMaterialDialog({
       toast.success("Material enviado para a obra");
       qc.invalidateQueries({ queryKey: ["alocacoes", obra.id] });
       qc.invalidateQueries({ queryKey: ["materiais"] });
+      qc.invalidateQueries({ queryKey: ["movimentacoes"] });
       onOpenChange(false);
     },
     onError: (e: Error) => toast.error(e.message),

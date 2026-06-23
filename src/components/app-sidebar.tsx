@@ -1,6 +1,6 @@
 import { Link, useRouter, useRouterState } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
-import { LayoutDashboard, Boxes, HardHat, Users, LogOut } from "lucide-react";
+import { LayoutDashboard, Boxes, HardHat, History, Users, LogOut } from "lucide-react";
 import rockLogo from "@/assets/rock-logo.jpg.asset.json";
 import {
   Sidebar,
@@ -21,6 +21,7 @@ const baseItems = [
   { title: "Dashboard", url: "/", icon: LayoutDashboard },
   { title: "Estoque Central", url: "/estoque", icon: Boxes },
   { title: "Obras", url: "/obras", icon: HardHat },
+  { title: "Movimentações", url: "/movimentacoes", icon: History },
 ];
 
 export function AppSidebar() {
