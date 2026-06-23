@@ -1,6 +1,7 @@
 import { Link, useRouter, useRouterState } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
-import { LayoutDashboard, Boxes, HardHat, Hammer, Users, LogOut } from "lucide-react";
+import { LayoutDashboard, Boxes, HardHat, Users, LogOut } from "lucide-react";
+import rockLogo from "@/assets/rock-logo.jpg.asset.json";
 import {
   Sidebar,
   SidebarContent,
