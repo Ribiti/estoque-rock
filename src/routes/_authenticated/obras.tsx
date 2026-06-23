@@ -183,7 +183,17 @@ function ObraPanel({ obra, onConcluir }: { obra: Obra; onConcluir: () => void })
             {alocacoes.length} {alocacoes.length === 1 ? "alocação registrada" : "alocações registradas"}
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
+          <Button
+            variant="outline"
+            onClick={() => {
+              if (alocacoes.length === 0) { toast.error("Nenhum envio para exportar"); return; }
+              exportObra(obra, alocacoes);
+              toast.success("Planilha gerada");
+            }}
+          >
+            <Download className="h-4 w-4" /> Exportar Excel
+          </Button>
           <Button variant="outline" onClick={onConcluir}>
             <CheckCircle2 className="h-4 w-4" /> Concluir obra
           </Button>
