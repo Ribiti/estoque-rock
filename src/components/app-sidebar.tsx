@@ -1,6 +1,7 @@
 import { Link, useRouter, useRouterState } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
-import { LayoutDashboard, Boxes, HardHat, Hammer, Users, LogOut } from "lucide-react";
+import { LayoutDashboard, Boxes, HardHat, Users, LogOut } from "lucide-react";
+import rockLogo from "@/assets/rock-logo.jpg.asset.json";
 import {
   Sidebar,
   SidebarContent,
@@ -47,8 +48,8 @@ export function AppSidebar() {
     <Sidebar collapsible="icon">
       <SidebarHeader className="border-b border-sidebar-border">
         <div className="flex items-center gap-2 px-2 py-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-md bg-accent text-accent-foreground shrink-0">
-            <Hammer className="h-5 w-5" />
+          <div className="flex h-9 w-9 items-center justify-center rounded-md bg-sidebar-accent overflow-hidden shrink-0">
+            <img src={rockLogo.url} alt="ROCK Incorporadora" className="h-full w-full object-cover" />
           </div>
           <div className="flex flex-col group-data-[collapsible=icon]:hidden">
             <span className="text-sm font-bold text-sidebar-foreground leading-tight">
