@@ -176,9 +176,9 @@ function ObraPanel({ obra, onConcluir }: { obra: Obra; onConcluir: () => void })
 
   return (
     <Card>
-      <div className="p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b">
-        <div>
-          <h2 className="text-xl font-semibold">{obra.nome}</h2>
+      <div className="p-4 sm:p-5 flex flex-col gap-3 border-b">
+        <div className="min-w-0">
+          <h2 className="text-lg sm:text-xl font-semibold truncate">{obra.nome}</h2>
           <p className="text-sm text-muted-foreground">
             {alocacoes.length} {alocacoes.length === 1 ? "alocação registrada" : "alocações registradas"}
           </p>
@@ -186,18 +186,19 @@ function ObraPanel({ obra, onConcluir }: { obra: Obra; onConcluir: () => void })
         <div className="flex flex-wrap gap-2">
           <Button
             variant="outline"
+            size="sm"
             onClick={() => {
               if (alocacoes.length === 0) { toast.error("Nenhum envio para exportar"); return; }
               exportObra(obra, alocacoes);
               toast.success("Planilha gerada");
             }}
           >
-            <Download className="h-4 w-4" /> Exportar Excel
+            <Download className="h-4 w-4" /> Excel
           </Button>
-          <Button variant="outline" onClick={onConcluir}>
-            <CheckCircle2 className="h-4 w-4" /> Concluir obra
+          <Button variant="outline" size="sm" onClick={onConcluir}>
+            <CheckCircle2 className="h-4 w-4" /> Concluir
           </Button>
-          <Button onClick={() => setAlocarOpen(true)} className="shadow-md">
+          <Button size="sm" onClick={() => setAlocarOpen(true)} className="shadow-md ml-auto">
             <Send className="h-4 w-4" /> Enviar Material
           </Button>
         </div>
