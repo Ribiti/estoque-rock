@@ -302,12 +302,27 @@ function MaterialFormDialog({
   });
 
   const mut = useMutation({
+    retry: (failureCount, error: unknown) => {
+      const msg = (error as Error)?.message?.toLowerCase() ?? "";
+      const isNetwork = msg.includes("network") || msg.includes("fetch") || msg.includes("failed to fetch");
+      return isNetwork && failureCount < 3;
+    },
+    retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 4000),
     mutationFn: async (values: MaterialForm) => {
+      // Garante que a sessão esteja válida antes de enviar (evita NetworkError em token expirado)
+      await supabase.auth.getSession();
+      const payload = {
+        nome: values.nome.trim(),
+        categoria: values.categoria,
+        unidade: values.unidade,
+        quantidade_disponivel: Number(values.quantidade_disponivel) || 0,
+        estoque_minimo: Number(values.estoque_minimo) || 0,
+      };
       if (isEdit && material) {
-        const { error } = await supabase.from("materiais").update({ ...values, updated_at: new Date().toISOString() }).eq("id", material.id);
+        const { error } = await supabase.from("materiais").update({ ...payload, updated_at: new Date().toISOString() }).eq("id", material.id);
         if (error) throw error;
       } else {
-        const { error } = await supabase.from("materiais").insert(values);
+        const { error } = await supabase.from("materiais").insert(payload);
         if (error) throw error;
       }
     },
