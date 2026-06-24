@@ -29,10 +29,10 @@ function Dashboard() {
   const totalUnidades = materiais.reduce((sum, m) => sum + m.quantidade_disponivel, 0);
 
   return (
-    <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-8">
+    <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-6 sm:space-y-8">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-        <p className="text-muted-foreground mt-1">
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Dashboard</h1>
+        <p className="text-muted-foreground mt-1 text-sm sm:text-base">
           Visão geral do estoque e obras em andamento.
         </p>
       </div>
