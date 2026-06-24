@@ -332,7 +332,7 @@ function MaterialFormDialog({
       onOpenChange(false);
       form.reset();
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: unknown) => toast.error((e as Error)?.message ?? "Erro ao salvar"),
   });
 
   return (
