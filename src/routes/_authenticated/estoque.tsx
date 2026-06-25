@@ -1,13 +1,12 @@
 import { useState, useMemo } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useServerFn } from "@tanstack/react-start";
-import { Plus, Search, Pencil, Trash2, Package, AlertTriangle, Download, Sparkles, Check, X } from "lucide-react";
+import { Plus, Search, Pencil, Trash2, Package, AlertTriangle, Download } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { verificarMaterialIA } from "@/lib/materiais-ai.functions";
+
 
 
 import { Button } from "@/components/ui/button";
