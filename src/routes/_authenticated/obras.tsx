@@ -323,13 +323,8 @@ function AlocarMaterialDialog({
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit((v) => mut.mutate(v))} className="space-y-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium leading-none">Buscar material</label>
-              <Input
-                placeholder="Digite para filtrar..." value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />
-            </div>
+
+
 
             <FormField control={form.control} name="material_id" render={({ field }) => (
               <FormItem>
