@@ -340,7 +340,7 @@ function MaterialFormDialog({
   });
 
   return (
-    <Dialog open={open} onOpenChange={(o) => { if (!o) setSugestao(null); onOpenChange(o); }}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{isEdit ? "Editar Material" : "Novo Material"}</DialogTitle>
@@ -353,65 +353,11 @@ function MaterialFormDialog({
             <FormField control={form.control} name="nome" render={({ field }) => (
               <FormItem>
                 <FormLabel>Nome</FormLabel>
-                <div className="flex gap-2">
-                  <FormControl><Input placeholder="Ex: Tubo Soldável 25mm" {...field} onChange={(e) => { field.onChange(e); setSugestao(null); }} /></FormControl>
-                  <Button
-                    type="button" variant="outline" size="icon"
-                    title="Verificar com IA"
-                    disabled={iaMut.isPending || !field.value?.trim()}
-                    onClick={() => iaMut.mutate(field.value.trim())}
-                  >
-                    <Sparkles className={`h-4 w-4 ${iaMut.isPending ? "animate-pulse" : ""}`} />
-                  </Button>
-                </div>
+                <FormControl><Input placeholder="Ex: Tubo Soldável 25mm" {...field} /></FormControl>
                 <FormMessage />
-                {sugestao && (sugestao.houve_correcao || sugestao.duplicado_id) && (
-                  <div className="mt-2 rounded-md border p-3 space-y-2 bg-muted/40">
-                    {sugestao.duplicado_id ? (
-                      <>
-                        <div className="flex items-start gap-2 text-sm">
-                          <AlertTriangle className="h-4 w-4 text-destructive mt-0.5 shrink-0" />
-                          <div>
-                            <p className="font-medium">Possível duplicata detectada</p>
-                            <p className="text-muted-foreground">
-                              Já existe: <span className="font-medium text-foreground">{sugestao.duplicado_nome}</span>
-                            </p>
-                            {sugestao.explicacao && <p className="text-xs text-muted-foreground mt-1">{sugestao.explicacao}</p>}
-                          </div>
-                        </div>
-                        <div className="flex gap-2">
-                          <Button type="button" size="sm" variant="outline" onClick={() => setSugestao(null)}>
-                            <X className="h-3 w-3" /> Cadastrar mesmo assim
-                          </Button>
-                        </div>
-                      </>
-                    ) : (
-                      <>
-                        <div className="flex items-start gap-2 text-sm">
-                          <Sparkles className="h-4 w-4 text-primary mt-0.5 shrink-0" />
-                          <div>
-                            <p className="font-medium">Sugestão de correção</p>
-                            <p className="text-muted-foreground">
-                              <span className="line-through">{field.value}</span> →{" "}
-                              <span className="font-medium text-foreground">{sugestao.nome_corrigido}</span>
-                            </p>
-                            {sugestao.explicacao && <p className="text-xs text-muted-foreground mt-1">{sugestao.explicacao}</p>}
-                          </div>
-                        </div>
-                        <div className="flex gap-2">
-                          <Button type="button" size="sm" onClick={() => { field.onChange(sugestao.nome_corrigido); setSugestao(null); }}>
-                            <Check className="h-3 w-3" /> Usar sugestão
-                          </Button>
-                          <Button type="button" size="sm" variant="outline" onClick={() => setSugestao(null)}>
-                            <X className="h-3 w-3" /> Ignorar
-                          </Button>
-                        </div>
-                      </>
-                    )}
-                  </div>
-                )}
               </FormItem>
             )} />
+
 
             <div className="grid grid-cols-2 gap-3">
               <FormField control={form.control} name="categoria" render={({ field }) => (
