@@ -1,11 +1,14 @@
 import { useState, useMemo } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Plus, Search, Pencil, Trash2, Package, AlertTriangle, Download } from "lucide-react";
+import { useServerFn } from "@tanstack/react-start";
+import { Plus, Search, Pencil, Trash2, Package, AlertTriangle, Download, Sparkles, Check, X } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { verificarMaterialIA } from "@/lib/materiais-ai.functions";
+
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -286,6 +289,31 @@ function MaterialFormDialog({
 }: { open: boolean; onOpenChange: (o: boolean) => void; material: Material | null }) {
   const qc = useQueryClient();
   const isEdit = !!material;
+  const { data: materiais = [] } = useQuery({ queryKey: ["materiais"], queryFn: fetchMateriais });
+
+  type Sugestao = {
+    nome_corrigido: string;
+    houve_correcao: boolean;
+    duplicado_id: string | null;
+    duplicado_nome: string | null;
+    explicacao: string;
+  };
+  const [sugestao, setSugestao] = useState<Sugestao | null>(null);
+  const verificar = useServerFn(verificarMaterialIA);
+  const iaMut = useMutation({
+    mutationFn: async (nome: string) => {
+      const lista = materiais
+        .filter((m) => !material || m.id !== material.id)
+        .slice(0, 200)
+        .map((m) => ({ id: m.id, nome: m.nome }));
+      return (await verificar({ data: { nome, existentes: lista } })) as Sugestao;
+    },
+    onSuccess: (r) => {
+      setSugestao(r);
+      if (!r.houve_correcao && !r.duplicado_id) toast.success("Nenhum problema detectado");
+    },
+    onError: (e: unknown) => toast.error((e as Error)?.message ?? "Erro na verificação"),
+  });
 
   const form = useForm<MaterialForm>({
     resolver: zodResolver(materialSchema),
@@ -300,6 +328,7 @@ function MaterialFormDialog({
       quantidade_disponivel: 0, estoque_minimo: 0,
     },
   });
+
 
   const mut = useMutation({
     retry: (failureCount, error: unknown) => {
@@ -336,7 +365,7 @@ function MaterialFormDialog({
   });
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={(o) => { if (!o) setSugestao(null); onOpenChange(o); }}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{isEdit ? "Editar Material" : "Novo Material"}</DialogTitle>
@@ -349,10 +378,66 @@ function MaterialFormDialog({
             <FormField control={form.control} name="nome" render={({ field }) => (
               <FormItem>
                 <FormLabel>Nome</FormLabel>
-                <FormControl><Input placeholder="Ex: Tubo Soldável 25mm" {...field} /></FormControl>
+                <div className="flex gap-2">
+                  <FormControl><Input placeholder="Ex: Tubo Soldável 25mm" {...field} onChange={(e) => { field.onChange(e); setSugestao(null); }} /></FormControl>
+                  <Button
+                    type="button" variant="outline" size="icon"
+                    title="Verificar com IA"
+                    disabled={iaMut.isPending || !field.value?.trim()}
+                    onClick={() => iaMut.mutate(field.value.trim())}
+                  >
+                    <Sparkles className={`h-4 w-4 ${iaMut.isPending ? "animate-pulse" : ""}`} />
+                  </Button>
+                </div>
                 <FormMessage />
+                {sugestao && (sugestao.houve_correcao || sugestao.duplicado_id) && (
+                  <div className="mt-2 rounded-md border p-3 space-y-2 bg-muted/40">
+                    {sugestao.duplicado_id ? (
+                      <>
+                        <div className="flex items-start gap-2 text-sm">
+                          <AlertTriangle className="h-4 w-4 text-destructive mt-0.5 shrink-0" />
+                          <div>
+                            <p className="font-medium">Possível duplicata detectada</p>
+                            <p className="text-muted-foreground">
+                              Já existe: <span className="font-medium text-foreground">{sugestao.duplicado_nome}</span>
+                            </p>
+                            {sugestao.explicacao && <p className="text-xs text-muted-foreground mt-1">{sugestao.explicacao}</p>}
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button type="button" size="sm" variant="outline" onClick={() => setSugestao(null)}>
+                            <X className="h-3 w-3" /> Cadastrar mesmo assim
+                          </Button>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div className="flex items-start gap-2 text-sm">
+                          <Sparkles className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+                          <div>
+                            <p className="font-medium">Sugestão de correção</p>
+                            <p className="text-muted-foreground">
+                              <span className="line-through">{field.value}</span> →{" "}
+                              <span className="font-medium text-foreground">{sugestao.nome_corrigido}</span>
+                            </p>
+                            {sugestao.explicacao && <p className="text-xs text-muted-foreground mt-1">{sugestao.explicacao}</p>}
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button type="button" size="sm" onClick={() => { field.onChange(sugestao.nome_corrigido); setSugestao(null); }}>
+                            <Check className="h-3 w-3" /> Usar sugestão
+                          </Button>
+                          <Button type="button" size="sm" variant="outline" onClick={() => setSugestao(null)}>
+                            <X className="h-3 w-3" /> Ignorar
+                          </Button>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                )}
               </FormItem>
             )} />
+
             <div className="grid grid-cols-2 gap-3">
               <FormField control={form.control} name="categoria" render={({ field }) => (
                 <FormItem>
