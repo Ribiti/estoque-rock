@@ -333,22 +333,49 @@ function AlocarMaterialDialog({
 
             <FormField control={form.control} name="material_id" render={({ field }) => (
               <FormItem>
-                <FormLabel>Material</FormLabel>
-                <Select value={field.value} onValueChange={field.onChange}>
-                  <FormControl><SelectTrigger><SelectValue placeholder="Selecione um material" /></SelectTrigger></FormControl>
-                  <SelectContent className="max-h-64">
-                    {filteredMats.length === 0 ? (
-                      <div className="p-3 text-sm text-muted-foreground text-center">Nenhum material encontrado</div>
-                    ) : filteredMats.map((m) => (
-                      <SelectItem key={m.id} value={m.id} disabled={m.quantidade_disponivel === 0}>
-                        {m.nome} — {m.quantidade_disponivel} {m.unidade} disponível
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <FormLabel>Buscar material</FormLabel>
+                <FormControl>
+                  <Input
+                    placeholder="Digite o nome do material..."
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    autoFocus
+                  />
+                </FormControl>
+                <div className="mt-2 max-h-56 overflow-y-auto rounded-md border divide-y">
+                  {filteredMats.length === 0 ? (
+                    <div className="p-3 text-sm text-muted-foreground text-center">
+                      Nenhum material encontrado
+                    </div>
+                  ) : (
+                    filteredMats.map((m) => {
+                      const disabled = m.quantidade_disponivel === 0;
+                      const active = field.value === m.id;
+                      return (
+                        <button
+                          key={m.id}
+                          type="button"
+                          disabled={disabled}
+                          onClick={() => field.onChange(m.id)}
+                          className={`w-full text-left px-3 py-2 text-sm flex items-center justify-between gap-3 transition-colors ${
+                            active
+                              ? "bg-primary text-primary-foreground"
+                              : "hover:bg-muted"
+                          } ${disabled ? "opacity-50 cursor-not-allowed" : ""}`}
+                        >
+                          <span className="font-medium truncate">{m.nome}</span>
+                          <span className={`font-mono text-xs whitespace-nowrap ${active ? "" : "text-muted-foreground"}`}>
+                            {m.quantidade_disponivel} {m.unidade}
+                          </span>
+                        </button>
+                      );
+                    })
+                  )}
+                </div>
                 <FormMessage />
               </FormItem>
             )} />
+
 
             {selected && (
               <div className="rounded-md bg-muted p-3 text-sm">
