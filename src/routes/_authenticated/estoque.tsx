@@ -289,6 +289,31 @@ function MaterialFormDialog({
 }: { open: boolean; onOpenChange: (o: boolean) => void; material: Material | null }) {
   const qc = useQueryClient();
   const isEdit = !!material;
+  const { data: materiais = [] } = useQuery({ queryKey: ["materiais"], queryFn: fetchMateriais });
+
+  type Sugestao = {
+    nome_corrigido: string;
+    houve_correcao: boolean;
+    duplicado_id: string | null;
+    duplicado_nome: string | null;
+    explicacao: string;
+  };
+  const [sugestao, setSugestao] = useState<Sugestao | null>(null);
+  const verificar = useServerFn(verificarMaterialIA);
+  const iaMut = useMutation({
+    mutationFn: async (nome: string) => {
+      const lista = materiais
+        .filter((m) => !material || m.id !== material.id)
+        .slice(0, 200)
+        .map((m) => ({ id: m.id, nome: m.nome }));
+      return (await verificar({ data: { nome, existentes: lista } })) as Sugestao;
+    },
+    onSuccess: (r) => {
+      setSugestao(r);
+      if (!r.houve_correcao && !r.duplicado_id) toast.success("Nenhum problema detectado");
+    },
+    onError: (e: unknown) => toast.error((e as Error)?.message ?? "Erro na verificação"),
+  });
 
   const form = useForm<MaterialForm>({
     resolver: zodResolver(materialSchema),
@@ -303,6 +328,7 @@ function MaterialFormDialog({
       quantidade_disponivel: 0, estoque_minimo: 0,
     },
   });
+
 
   const mut = useMutation({
     retry: (failureCount, error: unknown) => {
