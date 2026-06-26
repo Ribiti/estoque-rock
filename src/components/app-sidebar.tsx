@@ -20,8 +20,14 @@ import { useCurrentUser, useIsAdmin, emailToUsername } from "@/lib/auth";
 const baseItems = [
   { title: "Dashboard", url: "/", icon: LayoutDashboard },
   { title: "Estoque Central", url: "/estoque", icon: Boxes },
+  { title: "Pedidos de Compra", url: "/pedidos", icon: ShoppingCart },
   { title: "Obras", url: "/obras", icon: HardHat },
   { title: "Movimentações", url: "/movimentacoes", icon: History },
+];
+
+const adminExtraItems = [
+  { title: "Usuários", url: "/usuarios", icon: Users },
+  { title: "Fornecedores", url: "/fornecedores", icon: Truck },
 ];
 
 export function AppSidebar() {
