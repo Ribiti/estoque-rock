@@ -53,13 +53,54 @@ export type Database = {
           },
         ]
       }
+      fornecedores: {
+        Row: {
+          cnpj: string | null
+          created_at: string
+          endereco: string | null
+          id: string
+          nome: string
+          observacoes: string | null
+          status: string
+          telefone: string
+          tempo_entrega_dias: number
+          updated_at: string
+        }
+        Insert: {
+          cnpj?: string | null
+          created_at?: string
+          endereco?: string | null
+          id?: string
+          nome: string
+          observacoes?: string | null
+          status?: string
+          telefone: string
+          tempo_entrega_dias?: number
+          updated_at?: string
+        }
+        Update: {
+          cnpj?: string | null
+          created_at?: string
+          endereco?: string | null
+          id?: string
+          nome?: string
+          observacoes?: string | null
+          status?: string
+          telefone?: string
+          tempo_entrega_dias?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       materiais: {
         Row: {
           categoria: string
           created_at: string
           estoque_minimo: number
+          fornecedor_id: string | null
           id: string
           nome: string
+          preco_unitario: number
           quantidade_disponivel: number
           unidade: string
           updated_at: string
@@ -68,8 +109,10 @@ export type Database = {
           categoria: string
           created_at?: string
           estoque_minimo?: number
+          fornecedor_id?: string | null
           id?: string
           nome: string
+          preco_unitario?: number
           quantidade_disponivel?: number
           unidade: string
           updated_at?: string
@@ -78,13 +121,23 @@ export type Database = {
           categoria?: string
           created_at?: string
           estoque_minimo?: number
+          fornecedor_id?: string | null
           id?: string
           nome?: string
+          preco_unitario?: number
           quantidade_disponivel?: number
           unidade?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "materiais_fornecedor_id_fkey"
+            columns: ["fornecedor_id"]
+            isOneToOne: false
+            referencedRelation: "fornecedores"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       movimentacoes: {
         Row: {
@@ -155,6 +208,107 @@ export type Database = {
         }
         Relationships: []
       }
+      pedidos_compra: {
+        Row: {
+          created_at: string
+          data_entrega_prevista: string | null
+          data_pedido: string
+          entregue_em: string | null
+          fornecedor_id: string
+          frete: number
+          id: string
+          numero: number
+          observacoes: string | null
+          status: string
+          total: number
+          updated_at: string
+          usuario_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          data_entrega_prevista?: string | null
+          data_pedido?: string
+          entregue_em?: string | null
+          fornecedor_id: string
+          frete?: number
+          id?: string
+          numero?: number
+          observacoes?: string | null
+          status?: string
+          total?: number
+          updated_at?: string
+          usuario_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          data_entrega_prevista?: string | null
+          data_pedido?: string
+          entregue_em?: string | null
+          fornecedor_id?: string
+          frete?: number
+          id?: string
+          numero?: number
+          observacoes?: string | null
+          status?: string
+          total?: number
+          updated_at?: string
+          usuario_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pedidos_compra_fornecedor_id_fkey"
+            columns: ["fornecedor_id"]
+            isOneToOne: false
+            referencedRelation: "fornecedores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pedidos_compra_itens: {
+        Row: {
+          created_at: string
+          id: string
+          material_id: string
+          pedido_id: string
+          preco_unitario: number
+          quantidade: number
+          subtotal: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          material_id: string
+          pedido_id: string
+          preco_unitario: number
+          quantidade: number
+          subtotal: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          material_id?: string
+          pedido_id?: string
+          preco_unitario?: number
+          quantidade?: number
+          subtotal?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pedidos_compra_itens_material_id_fkey"
+            columns: ["material_id"]
+            isOneToOne: false
+            referencedRelation: "materiais"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pedidos_compra_itens_pedido_id_fkey"
+            columns: ["pedido_id"]
+            isOneToOne: false
+            referencedRelation: "pedidos_compra"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
@@ -209,6 +363,7 @@ export type Database = {
         Args: { p_material_id: string; p_obra_id: string; p_quantidade: number }
         Returns: string
       }
+      entregar_pedido: { Args: { p_pedido_id: string }; Returns: undefined }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
