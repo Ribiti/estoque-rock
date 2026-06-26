@@ -1,6 +1,7 @@
 import ExcelJS from "exceljs";
 import rockLogo from "@/assets/rock-logo.jpg.asset.json";
-import type { Material, Obra, AlocacaoComMaterial, MovimentacaoComRefs } from "./api";
+import type { Material, Obra, AlocacaoComMaterial, MovimentacaoComRefs, Fornecedor, PedidoCompraComRefs } from "./api";
+import { formatPedidoNumero } from "./api";
 
 const BRAND = "ROCK Incorporadora";
 const TAGLINE = "Controle de Estoque";
