@@ -46,6 +46,8 @@ const materialSchema = z.object({
   unidade: z.string().min(1, "Obrigatório"),
   quantidade_disponivel: z.coerce.number().int().min(0, "Deve ser ≥ 0"),
   estoque_minimo: z.coerce.number().int().min(0, "Deve ser ≥ 0"),
+  fornecedor_id: z.string().min(1, "Selecione um fornecedor"),
+  preco_unitario: z.coerce.number().min(0.01, "Preço deve ser > 0"),
 });
 type MaterialForm = z.infer<typeof materialSchema>;
 
