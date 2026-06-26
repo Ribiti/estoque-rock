@@ -33,7 +33,7 @@ import {
   Pagination, PaginationContent, PaginationItem, PaginationLink,
   PaginationNext, PaginationPrevious,
 } from "@/components/ui/pagination";
-import { fetchMateriais, type Material } from "@/lib/api";
+import { fetchMateriais, fetchFornecedores, formatBRL, type Material } from "@/lib/api";
 import { exportEstoqueAtual } from "@/lib/exports";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -46,6 +46,8 @@ const materialSchema = z.object({
   unidade: z.string().min(1, "Obrigatório"),
   quantidade_disponivel: z.coerce.number().int().min(0, "Deve ser ≥ 0"),
   estoque_minimo: z.coerce.number().int().min(0, "Deve ser ≥ 0"),
+  fornecedor_id: z.string().min(1, "Selecione um fornecedor"),
+  preco_unitario: z.coerce.number().min(0.01, "Preço deve ser > 0"),
 });
 type MaterialForm = z.infer<typeof materialSchema>;
 
@@ -289,6 +291,9 @@ function MaterialFormDialog({
   const qc = useQueryClient();
   const isEdit = !!material;
 
+  const { data: fornecedores = [] } = useQuery({ queryKey: ["fornecedores"], queryFn: fetchFornecedores });
+  const fornecedoresAtivos = fornecedores.filter((f) => f.status === "Ativo");
+
   const form = useForm<MaterialForm>({
     resolver: zodResolver(materialSchema),
     values: material ? {
@@ -297,13 +302,14 @@ function MaterialFormDialog({
       unidade: material.unidade,
       quantidade_disponivel: material.quantidade_disponivel,
       estoque_minimo: material.estoque_minimo,
+      fornecedor_id: material.fornecedor_id ?? "",
+      preco_unitario: Number(material.preco_unitario) || 0,
     } : {
       nome: "", categoria: "", unidade: "",
       quantidade_disponivel: 0, estoque_minimo: 0,
+      fornecedor_id: "", preco_unitario: 0,
     },
   });
-
-
 
   const mut = useMutation({
     retry: (failureCount, error: unknown) => {
@@ -313,7 +319,6 @@ function MaterialFormDialog({
     },
     retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 4000),
     mutationFn: async (values: MaterialForm) => {
-      // Garante que a sessão esteja válida antes de enviar (evita NetworkError em token expirado)
       await supabase.auth.getSession();
       const payload = {
         nome: values.nome.trim(),
@@ -321,12 +326,16 @@ function MaterialFormDialog({
         unidade: values.unidade,
         quantidade_disponivel: Number(values.quantidade_disponivel) || 0,
         estoque_minimo: Number(values.estoque_minimo) || 0,
+        fornecedor_id: values.fornecedor_id,
+        preco_unitario: Number(values.preco_unitario) || 0,
       };
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const db = supabase as any;
       if (isEdit && material) {
-        const { error } = await supabase.from("materiais").update({ ...payload, updated_at: new Date().toISOString() }).eq("id", material.id);
+        const { error } = await db.from("materiais").update({ ...payload, updated_at: new Date().toISOString() }).eq("id", material.id);
         if (error) throw error;
       } else {
-        const { error } = await supabase.from("materiais").insert(payload);
+        const { error } = await db.from("materiais").insert(payload);
         if (error) throw error;
       }
     },
@@ -397,6 +406,31 @@ function MaterialFormDialog({
                 <FormItem>
                   <FormLabel>Estoque mínimo</FormLabel>
                   <FormControl><Input type="number" min={0} {...field} /></FormControl>
+                  <FormMessage />
+                </FormItem>
+              )} />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <FormField control={form.control} name="fornecedor_id" render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Fornecedor Principal</FormLabel>
+                  <Select value={field.value} onValueChange={field.onChange}>
+                    <FormControl><SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger></FormControl>
+                    <SelectContent>
+                      {fornecedoresAtivos.length === 0 ? (
+                        <div className="p-2 text-sm text-muted-foreground">Cadastre um fornecedor primeiro</div>
+                      ) : fornecedoresAtivos.map((f) => (
+                        <SelectItem key={f.id} value={f.id}>{f.nome}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )} />
+              <FormField control={form.control} name="preco_unitario" render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Preço Unitário (R$)</FormLabel>
+                  <FormControl><Input type="number" min={0} step="0.01" {...field} /></FormControl>
                   <FormMessage />
                 </FormItem>
               )} />

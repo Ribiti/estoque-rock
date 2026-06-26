@@ -1,6 +1,6 @@
 import { Link, useRouter, useRouterState } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
-import { LayoutDashboard, Boxes, HardHat, History, Users, LogOut } from "lucide-react";
+import { LayoutDashboard, Boxes, HardHat, History, Users, LogOut, Truck, ShoppingCart } from "lucide-react";
 import rockLogo from "@/assets/rock-logo.jpg.asset.json";
 import {
   Sidebar,
@@ -20,8 +20,14 @@ import { useCurrentUser, useIsAdmin, emailToUsername } from "@/lib/auth";
 const baseItems = [
   { title: "Dashboard", url: "/", icon: LayoutDashboard },
   { title: "Estoque Central", url: "/estoque", icon: Boxes },
+  { title: "Pedidos de Compra", url: "/pedidos", icon: ShoppingCart },
   { title: "Obras", url: "/obras", icon: HardHat },
   { title: "Movimentações", url: "/movimentacoes", icon: History },
+];
+
+const adminExtraItems = [
+  { title: "Usuários", url: "/usuarios", icon: Users },
+  { title: "Fornecedores", url: "/fornecedores", icon: Truck },
 ];
 
 export function AppSidebar() {
@@ -31,9 +37,7 @@ export function AppSidebar() {
   const { user } = useCurrentUser();
   const { data: isAdmin } = useIsAdmin(user?.id);
 
-  const items = isAdmin
-    ? [...baseItems, { title: "Usuários", url: "/usuarios", icon: Users }]
-    : baseItems;
+  const items = isAdmin ? [...baseItems, ...adminExtraItems] : baseItems;
 
   const isActive = (path: string) =>
     path === "/" ? pathname === "/" : pathname.startsWith(path);
