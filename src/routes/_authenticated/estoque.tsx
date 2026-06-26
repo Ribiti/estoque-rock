@@ -33,7 +33,7 @@ import {
   Pagination, PaginationContent, PaginationItem, PaginationLink,
   PaginationNext, PaginationPrevious,
 } from "@/components/ui/pagination";
-import { fetchMateriais, type Material } from "@/lib/api";
+import { fetchMateriais, fetchFornecedores, formatBRL, type Material } from "@/lib/api";
 import { exportEstoqueAtual } from "@/lib/exports";
 import { supabase } from "@/integrations/supabase/client";
 
