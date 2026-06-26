@@ -32,6 +32,9 @@ import { fetchFornecedores, type Fornecedor } from "@/lib/api";
 import { exportFornecedores } from "@/lib/exports";
 import { supabase } from "@/integrations/supabase/client";
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const db = supabase as any;
+
 export const Route = createFileRoute("/_authenticated/fornecedores")({
   head: () => ({ meta: [{ title: "Fornecedores — ROCK Incorporadora" }] }),
   component: FornecedoresPage,
@@ -43,7 +46,7 @@ const cnpjRegex = /^\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}$/;
 const schema = z.object({
   nome: z.string().trim().min(1, "Obrigatório").max(120),
   telefone: z.string().regex(phoneRegex, "Formato: (XX) 9XXXX-XXXX"),
-  tempo_entrega_dias: z.coerce.number().int().min(0).default(3),
+  tempo_entrega_dias: z.coerce.number().int().min(0),
   endereco: z.string().max(200).optional().or(z.literal("")),
   cnpj: z.string().optional().or(z.literal("")).refine(
     (v) => !v || cnpjRegex.test(v),
@@ -52,7 +55,7 @@ const schema = z.object({
   status: z.enum(["Ativo", "Inativo"]),
   observacoes: z.string().max(500).optional().or(z.literal("")),
 });
-type Form = z.infer<typeof schema>;
+type FormValues = z.infer<typeof schema>;
 
 function formatPhone(v: string): string {
   const d = v.replace(/\D/g, "").slice(0, 11);
