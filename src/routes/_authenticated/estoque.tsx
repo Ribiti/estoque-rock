@@ -410,6 +410,31 @@ function MaterialFormDialog({
                 </FormItem>
               )} />
             </div>
+            <div className="grid grid-cols-2 gap-3">
+              <FormField control={form.control} name="fornecedor_id" render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Fornecedor Principal</FormLabel>
+                  <Select value={field.value} onValueChange={field.onChange}>
+                    <FormControl><SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger></FormControl>
+                    <SelectContent>
+                      {fornecedoresAtivos.length === 0 ? (
+                        <div className="p-2 text-sm text-muted-foreground">Cadastre um fornecedor primeiro</div>
+                      ) : fornecedoresAtivos.map((f) => (
+                        <SelectItem key={f.id} value={f.id}>{f.nome}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )} />
+              <FormField control={form.control} name="preco_unitario" render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Preço Unitário (R$)</FormLabel>
+                  <FormControl><Input type="number" min={0} step="0.01" {...field} /></FormControl>
+                  <FormMessage />
+                </FormItem>
+              )} />
+            </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
               <Button type="submit" disabled={mut.isPending}>
