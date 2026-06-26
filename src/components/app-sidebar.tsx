@@ -37,9 +37,7 @@ export function AppSidebar() {
   const { user } = useCurrentUser();
   const { data: isAdmin } = useIsAdmin(user?.id);
 
-  const items = isAdmin
-    ? [...baseItems, { title: "Usuários", url: "/usuarios", icon: Users }]
-    : baseItems;
+  const items = isAdmin ? [...baseItems, ...adminExtraItems] : baseItems;
 
   const isActive = (path: string) =>
     path === "/" ? pathname === "/" : pathname.startsWith(path);
