@@ -94,7 +94,7 @@ function FornecedoresPage() {
   const deleteMut = useMutation({
     mutationFn: async (f: Fornecedor) => {
       // Soft delete: marca como inativo (preserva histórico de pedidos)
-      const { error } = await supabase
+      const { error } = await db
         .from("fornecedores")
         .update({ status: "Inativo" })
         .eq("id", f.id);
