@@ -338,3 +338,63 @@ export async function exportObra(obra: Obra, alocacoes: AlocacaoComMaterial[]) {
   const safeName = obra.nome.replace(/[^a-zA-Z0-9-_ ]/g, "").slice(0, 40);
   await downloadWb(wb, `${BRAND}-Obra-${safeName}-${todayStamp()}.xlsx`);
 }
+
+export async function exportFornecedores(items: Fornecedor[]) {
+  const logo = await loadLogoBuffer();
+  const wb = newWb();
+  const rows = items.map((f) => ({
+    nome: f.nome,
+    telefone: f.telefone,
+    tempo: f.tempo_entrega_dias,
+    cnpj: f.cnpj ?? "",
+    endereco: f.endereco ?? "",
+    status: f.status,
+    observacoes: f.observacoes ?? "",
+  }));
+  await addBrandedSheet(wb, {
+    name: "Fornecedores",
+    title: "Fornecedores",
+    subtitle: `${items.length} fornecedores`,
+    columns: [
+      { header: "Nome", key: "nome", width: 28 },
+      { header: "Telefone", key: "telefone", width: 18, align: "center" },
+      { header: "Entrega (dias)", key: "tempo", width: 14, align: "right", numFmt: "#,##0" },
+      { header: "CNPJ", key: "cnpj", width: 22, align: "center" },
+      { header: "Endereço", key: "endereco", width: 32 },
+      { header: "Status", key: "status", width: 12, align: "center" },
+      { header: "Observações", key: "observacoes", width: 32 },
+    ],
+    rows,
+  }, logo);
+  await downloadWb(wb, `${BRAND}-Fornecedores-${todayStamp()}.xlsx`);
+}
+
+export async function exportPedidos(pedidos: PedidoCompraComRefs[]) {
+  const logo = await loadLogoBuffer();
+  const wb = newWb();
+  const rows = pedidos.map((p) => ({
+    numero: formatPedidoNumero(p.numero),
+    fornecedor: p.fornecedor?.nome ?? "—",
+    data: formatDateBR(p.data_pedido),
+    previsao: p.data_entrega_prevista ? new Date(p.data_entrega_prevista + "T00:00:00").toLocaleDateString("pt-BR") : "",
+    status: p.status,
+    itens: p.itens.length,
+    total: p.total,
+  }));
+  await addBrandedSheet(wb, {
+    name: "Pedidos",
+    title: "Pedidos de Compra",
+    subtitle: `${pedidos.length} pedidos`,
+    columns: [
+      { header: "Nº", key: "numero", width: 10, align: "center" },
+      { header: "Fornecedor", key: "fornecedor", width: 26 },
+      { header: "Data do Pedido", key: "data", width: 20, align: "center" },
+      { header: "Previsão", key: "previsao", width: 14, align: "center" },
+      { header: "Status", key: "status", width: 16, align: "center" },
+      { header: "Itens", key: "itens", width: 8, align: "right", numFmt: "#,##0" },
+      { header: "Total", key: "total", width: 16, align: "right", numFmt: "\"R$\" #,##0.00" },
+    ],
+    rows,
+  }, logo);
+  await downloadWb(wb, `${BRAND}-Pedidos-${todayStamp()}.xlsx`);
+}
