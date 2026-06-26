@@ -95,7 +95,7 @@ function FornecedoresPage() {
     mutationFn: async (f: Fornecedor) => {
       // Soft delete: marca como inativo (preserva histórico de pedidos)
       const { error } = await supabase
-        .from("fornecedores" as never)
+        .from("fornecedores")
         .update({ status: "Inativo" })
         .eq("id", f.id);
       if (error) throw error;
@@ -246,7 +246,7 @@ function FornecedorDialog({
   const qc = useQueryClient();
   const isEdit = !!fornecedor;
 
-  const form = useForm<Form>({
+  const form = useForm<FormValues>({
     resolver: zodResolver(schema),
     values: fornecedor ? {
       nome: fornecedor.nome,
@@ -263,7 +263,7 @@ function FornecedorDialog({
   });
 
   const mut = useMutation({
-    mutationFn: async (v: Form) => {
+    mutationFn: async (v: FormValues) => {
       const payload = {
         nome: v.nome.trim(),
         telefone: v.telefone,
@@ -274,10 +274,10 @@ function FornecedorDialog({
         observacoes: v.observacoes || null,
       };
       if (isEdit && fornecedor) {
-        const { error } = await supabase.from("fornecedores" as never).update(payload).eq("id", fornecedor.id);
+        const { error } = await db.from("fornecedores").update(payload).eq("id", fornecedor.id);
         if (error) throw error;
       } else {
-        const { error } = await supabase.from("fornecedores" as never).insert(payload);
+        const { error } = await db.from("fornecedores").insert(payload);
         if (error) throw error;
       }
     },
