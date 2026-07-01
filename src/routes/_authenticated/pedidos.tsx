@@ -293,6 +293,56 @@ function NovoPedidoDialog({ open, onOpenChange }: { open: boolean; onOpenChange:
   const [obs, setObs] = useState("");
   const [previsao, setPrevisao] = useState<string>("");
   const [novoMatOpen, setNovoMatOpen] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const extrairFn = useServerFn(extrairPedidoDeImagem);
+
+  const ocrMut = useMutation({
+    mutationFn: async (file: File) => {
+      if (file.size > 8 * 1024 * 1024) throw new Error("Imagem muito grande (máx 8MB)");
+      const dataUrl: string = await new Promise((resolve, reject) => {
+        const r = new FileReader();
+        r.onload = () => resolve(r.result as string);
+        r.onerror = () => reject(new Error("Falha ao ler imagem"));
+        r.readAsDataURL(file);
+      });
+      return await extrairFn({ data: { imageDataUrl: dataUrl } });
+    },
+    onSuccess: (result) => {
+      if (result.itens.length === 0) {
+        toast.error("Nenhum item detectado na imagem");
+        return;
+      }
+      // Sugerir fornecedor se ainda não escolhido
+      if (!fornecedorId && result.fornecedor_sugerido) {
+        const f = fornecedoresAtivos.find(
+          (x) => x.nome.toLowerCase() === result.fornecedor_sugerido!.toLowerCase(),
+        );
+        if (f) setFornecedorId(f.id);
+      }
+      if (result.frete > 0) setFrete(result.frete);
+      if (result.observacoes) setObs((prev) => prev ? `${prev}\n${result.observacoes}` : result.observacoes!);
+
+      const novosItens: ItemDraft[] = [];
+      let semMatch = 0;
+      for (const it of result.itens) {
+        if (!it.material_id) { semMatch++; continue; }
+        const mat = materiais.find((m) => m.id === it.material_id);
+        if (!mat) { semMatch++; continue; }
+        if (itens.find((x) => x.material.id === mat.id)) continue;
+        novosItens.push({
+          material: mat,
+          quantidade: it.quantidade || 1,
+          preco_unitario: it.preco_unitario || Number(mat.preco_unitario) || 0,
+        });
+      }
+      setItens([...itens, ...novosItens]);
+      toast.success(
+        `${novosItens.length} ${novosItens.length === 1 ? "item importado" : "itens importados"}` +
+        (semMatch > 0 ? ` — ${semMatch} sem correspondência no estoque` : ""),
+      );
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
 
   const fornecedor = fornecedoresAtivos.find((f) => f.id === fornecedorId);
   const selMat = materiais.find((m) => m.id === selMatId);
