@@ -200,7 +200,10 @@ function ObraPanel({ obra, onConcluir }: { obra: Obra; onConcluir: () => void })
           <Button variant="outline" size="sm" onClick={onConcluir}>
             <CheckCircle2 className="h-4 w-4" /> Concluir
           </Button>
-          <Button size="sm" onClick={() => setAlocarOpen(true)} className="shadow-md ml-auto">
+          <Button size="sm" variant="outline" onClick={() => setLoteOpen(true)} className="ml-auto">
+            <PackagePlus className="h-4 w-4" /> Envio em Lote
+          </Button>
+          <Button size="sm" onClick={() => setAlocarOpen(true)} className="shadow-md">
             <Send className="h-4 w-4" /> Enviar Material
           </Button>
         </div>
