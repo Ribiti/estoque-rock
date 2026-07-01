@@ -290,6 +290,7 @@ function NovoPedidoDialog({ open, onOpenChange }: { open: boolean; onOpenChange:
   const [frete, setFrete] = useState<number>(0);
   const [obs, setObs] = useState("");
   const [previsao, setPrevisao] = useState<string>("");
+  const [novoMatOpen, setNovoMatOpen] = useState(false);
 
   const fornecedor = fornecedoresAtivos.find((f) => f.id === fornecedorId);
   const selMat = materiais.find((m) => m.id === selMatId);
