@@ -631,3 +631,138 @@ function InfoRow({ label, value }: { label: string; value: string }) {
     </div>
   );
 }
+
+// ─────────────────────────────────────────────────────────────────────
+// Cadastro rápido de material dentro do pedido
+
+const CATEGORIAS_RAPIDAS = [
+  "Hidráulica", "Elétrica", "Estrutural", "Acabamento",
+  "Ferramentas", "EPI", "Pintura", "Outros",
+];
+
+const UNIDADES_RAPIDAS = ["un", "m", "m²", "m³", "kg", "L", "pç", "cx", "sc"];
+
+function NovoMaterialRapidoDialog({
+  open, onOpenChange, fornecedorId, nomeInicial, onCreated,
+}: {
+  open: boolean;
+  onOpenChange: (o: boolean) => void;
+  fornecedorId: string;
+  nomeInicial: string;
+  onCreated: (m: Material) => void;
+}) {
+  const [nome, setNome] = useState("");
+  const [categoria, setCategoria] = useState("Outros");
+  const [unidade, setUnidade] = useState("un");
+  const [preco, setPreco] = useState<number>(0);
+  const [estoqueMinimo, setEstoqueMinimo] = useState<number>(0);
+
+  useEffect(() => {
+    if (open) {
+      setNome(nomeInicial.trim());
+      setCategoria("Outros");
+      setUnidade("un");
+      setPreco(0);
+      setEstoqueMinimo(0);
+    }
+  }, [open, nomeInicial]);
+
+  const mut = useMutation({
+    mutationFn: async () => {
+      const nomeTrim = nome.trim();
+      if (!nomeTrim) throw new Error("Nome obrigatório");
+      if (!fornecedorId) throw new Error("Selecione um fornecedor primeiro");
+
+      const { data: existing } = await db
+        .from("materiais").select("id").ilike("nome", nomeTrim).maybeSingle();
+      if (existing) throw new Error("Já existe um material com esse nome");
+
+      const { data, error } = await db
+        .from("materiais")
+        .insert({
+          nome: nomeTrim,
+          categoria,
+          unidade,
+          preco_unitario: preco,
+          estoque_minimo: estoqueMinimo,
+          quantidade_disponivel: 0,
+          fornecedor_id: fornecedorId,
+        })
+        .select("*")
+        .single();
+      if (error) throw error;
+      return data as Material;
+    },
+    onSuccess: (m) => {
+      onCreated(m);
+      onOpenChange(false);
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>Cadastrar novo material</DialogTitle>
+          <DialogDescription>
+            O material será adicionado ao Estoque Central com quantidade zero e vinculado ao fornecedor selecionado.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-3">
+          <div>
+            <label className="text-sm font-medium mb-1.5 block">Nome *</label>
+            <Input value={nome} onChange={(e) => setNome(e.target.value)} autoFocus />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-sm font-medium mb-1.5 block">Categoria</label>
+              <Select value={categoria} onValueChange={setCategoria}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {CATEGORIAS_RAPIDAS.map((c) => (
+                    <SelectItem key={c} value={c}>{c}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <label className="text-sm font-medium mb-1.5 block">Unidade</label>
+              <Select value={unidade} onValueChange={setUnidade}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {UNIDADES_RAPIDAS.map((u) => (
+                    <SelectItem key={u} value={u}>{u}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-sm font-medium mb-1.5 block">Preço Unit. (R$)</label>
+              <Input type="number" min={0} step="0.01" value={preco}
+                onChange={(e) => setPreco(Number(e.target.value) || 0)} />
+            </div>
+            <div>
+              <label className="text-sm font-medium mb-1.5 block">Estoque mínimo</label>
+              <Input type="number" min={0} value={estoqueMinimo}
+                onChange={(e) => setEstoqueMinimo(Number(e.target.value) || 0)} />
+            </div>
+          </div>
+        </div>
+
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
+          <Button onClick={() => mut.mutate()} disabled={mut.isPending}>
+            {mut.isPending ? "Cadastrando..." : "Cadastrar"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
