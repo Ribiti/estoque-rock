@@ -268,6 +268,7 @@ function ObraPanel({ obra, onConcluir }: { obra: Obra; onConcluir: () => void })
       </div>
 
       <AlocarMaterialDialog open={alocarOpen} onOpenChange={setAlocarOpen} obra={obra} />
+      <EnvioLoteDialog open={loteOpen} onOpenChange={setLoteOpen} obra={obra} />
     </Card>
   );
 }
