@@ -376,39 +376,11 @@ function NovoPedidoDialog({ open, onOpenChange }: { open: boolean; onOpenChange:
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Novo Pedido de Compra</DialogTitle>
-          <DialogDescription>Selecione fornecedor e adicione os materiais — ou importe de uma imagem.</DialogDescription>
+          <DialogDescription>Selecione fornecedor e adicione os materiais.</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
-          <Card className="p-3 border-dashed bg-primary/5">
-            <div className="flex items-center gap-3">
-              <div className="h-9 w-9 rounded-md bg-primary/10 flex items-center justify-center shrink-0">
-                <Sparkles className="h-4 w-4 text-primary" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium">Importar de imagem (IA)</p>
-                <p className="text-xs text-muted-foreground">
-                  Envie um print do pedido do site do fornecedor. A IA lê e preenche os itens.
-                </p>
-              </div>
-              <input
-                ref={fileInputRef} type="file" accept="image/*" className="hidden"
-                onChange={(e) => {
-                  const f = e.target.files?.[0];
-                  if (f) ocrMut.mutate(f);
-                  e.target.value = "";
-                }}
-              />
-              <Button
-                type="button" size="sm" variant="outline"
-                onClick={() => fileInputRef.current?.click()}
-                disabled={ocrMut.isPending}
-              >
-                <Upload className="h-4 w-4" />
-                {ocrMut.isPending ? "Lendo..." : "Enviar print"}
-              </Button>
-            </div>
-          </Card>
+
 
           <div>
             <label className="text-sm font-medium mb-1.5 block">Fornecedor *</label>
