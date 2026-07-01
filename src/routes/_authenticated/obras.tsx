@@ -143,6 +143,7 @@ function ObraPanel({ obra, onConcluir }: { obra: Obra; onConcluir: () => void })
     queryFn: () => fetchAlocacoesPorObra(obra.id),
   });
   const [alocarOpen, setAlocarOpen] = useState(false);
+  const [loteOpen, setLoteOpen] = useState(false);
 
   const removerMut = useMutation({
     mutationFn: async (alocacao: { id: string; material_id: string; quantidade: number }) => {
