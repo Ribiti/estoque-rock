@@ -290,6 +290,7 @@ function NovoPedidoDialog({ open, onOpenChange }: { open: boolean; onOpenChange:
   const [frete, setFrete] = useState<number>(0);
   const [obs, setObs] = useState("");
   const [previsao, setPrevisao] = useState<string>("");
+  const [novoMatOpen, setNovoMatOpen] = useState(false);
 
   const fornecedor = fornecedoresAtivos.find((f) => f.id === fornecedorId);
   const selMat = materiais.find((m) => m.id === selMatId);
@@ -396,11 +397,35 @@ function NovoPedidoDialog({ open, onOpenChange }: { open: boolean; onOpenChange:
           </div>
 
           <Card className="p-3 space-y-3">
-            <h3 className="text-sm font-semibold">Adicionar material</h3>
+            <div className="flex items-center justify-between gap-2">
+              <h3 className="text-sm font-semibold">Adicionar material</h3>
+              <Button
+                type="button" size="sm" variant="outline"
+                onClick={() => setNovoMatOpen(true)}
+                disabled={!fornecedorId}
+                title={!fornecedorId ? "Selecione um fornecedor primeiro" : ""}
+              >
+                <Plus className="h-3.5 w-3.5" /> Cadastrar novo
+              </Button>
+            </div>
             <Input
               placeholder="Buscar material..."
               value={search} onChange={(e) => setSearch(e.target.value)}
             />
+            {search && filteredMats.length === 0 && (
+              <div className="rounded-md border border-dashed p-3 text-sm text-center space-y-2">
+                <p className="text-muted-foreground">
+                  Nenhum material encontrado para <strong>&ldquo;{search}&rdquo;</strong>
+                </p>
+                <Button
+                  type="button" size="sm"
+                  onClick={() => setNovoMatOpen(true)}
+                  disabled={!fornecedorId}
+                >
+                  <Plus className="h-4 w-4" /> Cadastrar &ldquo;{search}&rdquo; no estoque
+                </Button>
+              </div>
+            )}
             {filteredMats.length > 0 && (
               <div className="max-h-40 overflow-y-auto rounded-md border divide-y">
                 {filteredMats.map((m) => (
@@ -436,6 +461,20 @@ function NovoPedidoDialog({ open, onOpenChange }: { open: boolean; onOpenChange:
               </div>
             )}
           </Card>
+
+          <NovoMaterialRapidoDialog
+            open={novoMatOpen}
+            onOpenChange={setNovoMatOpen}
+            fornecedorId={fornecedorId}
+            nomeInicial={search}
+            onCreated={(m) => {
+              qc.setQueryData<Material[]>(["materiais"], (prev = []) => [...prev, m].sort((a, b) => a.nome.localeCompare(b.nome)));
+              setSelMatId(m.id);
+              setPrecoEdit(Number(m.preco_unitario) || 0);
+              setSearch("");
+              toast.success(`"${m.nome}" cadastrado no estoque`);
+            }}
+          />
 
           {itens.length > 0 && (
             <Card className="overflow-hidden">
@@ -592,3 +631,138 @@ function InfoRow({ label, value }: { label: string; value: string }) {
     </div>
   );
 }
+
+// ─────────────────────────────────────────────────────────────────────
+// Cadastro rápido de material dentro do pedido
+
+const CATEGORIAS_RAPIDAS = [
+  "Hidráulica", "Elétrica", "Estrutural", "Acabamento",
+  "Ferramentas", "EPI", "Pintura", "Outros",
+];
+
+const UNIDADES_RAPIDAS = ["un", "m", "m²", "m³", "kg", "L", "pç", "cx", "sc"];
+
+function NovoMaterialRapidoDialog({
+  open, onOpenChange, fornecedorId, nomeInicial, onCreated,
+}: {
+  open: boolean;
+  onOpenChange: (o: boolean) => void;
+  fornecedorId: string;
+  nomeInicial: string;
+  onCreated: (m: Material) => void;
+}) {
+  const [nome, setNome] = useState("");
+  const [categoria, setCategoria] = useState("Outros");
+  const [unidade, setUnidade] = useState("un");
+  const [preco, setPreco] = useState<number>(0);
+  const [estoqueMinimo, setEstoqueMinimo] = useState<number>(0);
+
+  useEffect(() => {
+    if (open) {
+      setNome(nomeInicial.trim());
+      setCategoria("Outros");
+      setUnidade("un");
+      setPreco(0);
+      setEstoqueMinimo(0);
+    }
+  }, [open, nomeInicial]);
+
+  const mut = useMutation({
+    mutationFn: async () => {
+      const nomeTrim = nome.trim();
+      if (!nomeTrim) throw new Error("Nome obrigatório");
+      if (!fornecedorId) throw new Error("Selecione um fornecedor primeiro");
+
+      const { data: existing } = await db
+        .from("materiais").select("id").ilike("nome", nomeTrim).maybeSingle();
+      if (existing) throw new Error("Já existe um material com esse nome");
+
+      const { data, error } = await db
+        .from("materiais")
+        .insert({
+          nome: nomeTrim,
+          categoria,
+          unidade,
+          preco_unitario: preco,
+          estoque_minimo: estoqueMinimo,
+          quantidade_disponivel: 0,
+          fornecedor_id: fornecedorId,
+        })
+        .select("*")
+        .single();
+      if (error) throw error;
+      return data as Material;
+    },
+    onSuccess: (m) => {
+      onCreated(m);
+      onOpenChange(false);
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>Cadastrar novo material</DialogTitle>
+          <DialogDescription>
+            O material será adicionado ao Estoque Central com quantidade zero e vinculado ao fornecedor selecionado.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-3">
+          <div>
+            <label className="text-sm font-medium mb-1.5 block">Nome *</label>
+            <Input value={nome} onChange={(e) => setNome(e.target.value)} autoFocus />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-sm font-medium mb-1.5 block">Categoria</label>
+              <Select value={categoria} onValueChange={setCategoria}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {CATEGORIAS_RAPIDAS.map((c) => (
+                    <SelectItem key={c} value={c}>{c}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <label className="text-sm font-medium mb-1.5 block">Unidade</label>
+              <Select value={unidade} onValueChange={setUnidade}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {UNIDADES_RAPIDAS.map((u) => (
+                    <SelectItem key={u} value={u}>{u}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-sm font-medium mb-1.5 block">Preço Unit. (R$)</label>
+              <Input type="number" min={0} step="0.01" value={preco}
+                onChange={(e) => setPreco(Number(e.target.value) || 0)} />
+            </div>
+            <div>
+              <label className="text-sm font-medium mb-1.5 block">Estoque mínimo</label>
+              <Input type="number" min={0} value={estoqueMinimo}
+                onChange={(e) => setEstoqueMinimo(Number(e.target.value) || 0)} />
+            </div>
+          </div>
+        </div>
+
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
+          <Button onClick={() => mut.mutate()} disabled={mut.isPending}>
+            {mut.isPending ? "Cadastrando..." : "Cadastrar"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+

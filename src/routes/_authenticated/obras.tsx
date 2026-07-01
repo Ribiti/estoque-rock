@@ -1,13 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Plus, HardHat, Send, Package, CheckCircle2, Trash2, Download } from "lucide-react";
+import { Plus, HardHat, Send, Package, CheckCircle2, Trash2, Download, PackagePlus, X } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 import { Button } from "@/components/ui/button";
+
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -142,6 +143,7 @@ function ObraPanel({ obra, onConcluir }: { obra: Obra; onConcluir: () => void })
     queryFn: () => fetchAlocacoesPorObra(obra.id),
   });
   const [alocarOpen, setAlocarOpen] = useState(false);
+  const [loteOpen, setLoteOpen] = useState(false);
 
   const removerMut = useMutation({
     mutationFn: async (alocacao: { id: string; material_id: string; quantidade: number }) => {
@@ -198,7 +200,10 @@ function ObraPanel({ obra, onConcluir }: { obra: Obra; onConcluir: () => void })
           <Button variant="outline" size="sm" onClick={onConcluir}>
             <CheckCircle2 className="h-4 w-4" /> Concluir
           </Button>
-          <Button size="sm" onClick={() => setAlocarOpen(true)} className="shadow-md ml-auto">
+          <Button size="sm" variant="outline" onClick={() => setLoteOpen(true)} className="ml-auto">
+            <PackagePlus className="h-4 w-4" /> Envio em Lote
+          </Button>
+          <Button size="sm" onClick={() => setAlocarOpen(true)} className="shadow-md">
             <Send className="h-4 w-4" /> Enviar Material
           </Button>
         </div>
@@ -263,6 +268,7 @@ function ObraPanel({ obra, onConcluir }: { obra: Obra; onConcluir: () => void })
       </div>
 
       <AlocarMaterialDialog open={alocarOpen} onOpenChange={setAlocarOpen} obra={obra} />
+      <EnvioLoteDialog open={loteOpen} onOpenChange={setLoteOpen} obra={obra} />
     </Card>
   );
 }
@@ -458,3 +464,165 @@ function NovaObraDialog({
     </Dialog>
   );
 }
+
+// ─────────────────────────────────────────────────────────────────────
+// Envio em Lote
+
+type LoteItem = {
+  material_id: string;
+  nome: string;
+  unidade: string;
+  disponivel: number;
+  quantidade: number;
+};
+
+function EnvioLoteDialog({
+  open, onOpenChange, obra,
+}: { open: boolean; onOpenChange: (o: boolean) => void; obra: Obra }) {
+  const qc = useQueryClient();
+  const { data: materiais = [] } = useQuery({ queryKey: ["materiais"], queryFn: fetchMateriais });
+  const [search, setSearch] = useState("");
+  const [itens, setItens] = useState<LoteItem[]>([]);
+
+  useEffect(() => { if (!open) { setSearch(""); setItens([]); } }, [open]);
+
+  const disponiveis = useMemo(() => {
+    const s = search.toLowerCase();
+    return materiais
+      .filter((m) => !itens.find((i) => i.material_id === m.id))
+      .filter((m) => !s || m.nome.toLowerCase().includes(s))
+      .slice(0, 8);
+  }, [materiais, search, itens]);
+
+  function addItem(m: typeof materiais[number]) {
+    if (m.quantidade_disponivel <= 0) { toast.error(`${m.nome} sem estoque`); return; }
+    setItens([...itens, {
+      material_id: m.id, nome: m.nome, unidade: m.unidade,
+      disponivel: m.quantidade_disponivel, quantidade: 1,
+    }]);
+    setSearch("");
+  }
+
+  function updateQty(id: string, q: number) {
+    setItens(itens.map((i) => i.material_id === id ? { ...i, quantidade: q } : i));
+  }
+
+  function removeItem(id: string) {
+    setItens(itens.filter((i) => i.material_id !== id));
+  }
+
+  const mut = useMutation({
+    mutationFn: async () => {
+      if (itens.length === 0) throw new Error("Adicione ao menos 1 material");
+      for (const i of itens) {
+        if (i.quantidade <= 0) throw new Error(`Quantidade inválida para ${i.nome}`);
+        if (i.quantidade > i.disponivel) {
+          throw new Error(`${i.nome}: estoque insuficiente (disp: ${i.disponivel})`);
+        }
+      }
+      for (const i of itens) {
+        await alocarMaterial({
+          obra_id: obra.id, material_id: i.material_id, quantidade: i.quantidade,
+        });
+      }
+    },
+    onSuccess: () => {
+      toast.success(`${itens.length} ${itens.length === 1 ? "material enviado" : "materiais enviados"} para ${obra.nome}`);
+      qc.invalidateQueries({ queryKey: ["alocacoes", obra.id] });
+      qc.invalidateQueries({ queryKey: ["materiais"] });
+      qc.invalidateQueries({ queryKey: ["movimentacoes"] });
+      onOpenChange(false);
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Envio em Lote — {obra.nome}</DialogTitle>
+          <DialogDescription>
+            Adicione vários materiais de uma só vez. Cada item é validado contra o estoque disponível.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-4">
+          <Card className="p-3 space-y-2">
+            <label className="text-sm font-medium">Adicionar material</label>
+            <Input placeholder="Buscar por nome..." value={search} onChange={(e) => setSearch(e.target.value)} />
+            {disponiveis.length > 0 && (
+              <div className="max-h-40 overflow-y-auto rounded-md border divide-y">
+                {disponiveis.map((m) => (
+                  <button
+                    key={m.id} type="button"
+                    disabled={m.quantidade_disponivel === 0}
+                    onClick={() => addItem(m)}
+                    className="w-full text-left px-3 py-2 text-sm flex justify-between items-center hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <span className="font-medium truncate">{m.nome}</span>
+                    <span className="text-xs font-mono text-muted-foreground">
+                      {m.quantidade_disponivel} {m.unidade}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </Card>
+
+          {itens.length === 0 ? (
+            <Card className="p-8 text-center text-sm text-muted-foreground">
+              Nenhum item selecionado ainda.
+            </Card>
+          ) : (
+            <Card className="overflow-hidden">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Material</TableHead>
+                    <TableHead className="text-right">Disponível</TableHead>
+                    <TableHead className="w-32">Quantidade</TableHead>
+                    <TableHead></TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {itens.map((i) => {
+                    const invalid = i.quantidade <= 0 || i.quantidade > i.disponivel;
+                    return (
+                      <TableRow key={i.material_id}>
+                        <TableCell className="font-medium">{i.nome}</TableCell>
+                        <TableCell className="text-right font-mono text-sm text-muted-foreground">
+                          {i.disponivel} {i.unidade}
+                        </TableCell>
+                        <TableCell>
+                          <Input
+                            type="number" min={1} max={i.disponivel}
+                            value={i.quantidade}
+                            onChange={(e) => updateQty(i.material_id, Number(e.target.value) || 0)}
+                            className={invalid ? "border-destructive" : ""}
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <Button size="icon" variant="ghost" onClick={() => removeItem(i.material_id)}>
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </Card>
+          )}
+        </div>
+
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
+          <Button onClick={() => mut.mutate()} disabled={mut.isPending || itens.length === 0}>
+            {mut.isPending ? "Enviando..." : `Enviar ${itens.length} ${itens.length === 1 ? "item" : "itens"}`}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
